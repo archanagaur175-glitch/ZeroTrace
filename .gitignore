@@ -1,0 +1,22 @@
+# Frontend
+node_modules/
+dist/
+
+# Rust / Tauri
+target/
+src-tauri/gen/schemas/
+
+# Editor / OS
+.vscode/
+.idea/
+*.suo
+*.user
+Thumbs.db
+.DS_Store
+
+# Logs / runtime data
+*.log
+
+# Local toolchain pin (dev convenience only; rust-toolchain.toml is committed)
+.env
+.env.local

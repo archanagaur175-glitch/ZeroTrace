@@ -1,0 +1,100 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  RUST_BACKTRACE: 1
+  ZT_DEP_AUDIT_JSON: target/dep-audit.json
+
+jobs:
+  release:
+    name: Build & release (windows-2022)
+    runs-on: windows-2022
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Rust (pinned)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.97.1
+          targets: x86_64-pc-windows-msvc
+          components: rustfmt, clippy
+
+      - name: Enable Rustc cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Setup Node (pinned)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.3
+          cache: npm
+
+      - name: Install frontend deps
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Dependency deny-list audit
+        run: node scripts/dep-audit.mjs
+
+      - name: Fmt check
+        working-directory: src-tauri
+        run: cargo fmt --all -- --check
+
+      - name: Clippy
+        working-directory: src-tauri
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: Build release binaries
+        working-directory: src-tauri
+        env:
+          ZT_COMMIT: ${{ github.sha }}
+          ZT_TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+        run: cargo build --release
+
+      - name: Bundle installer (NSIS)
+        working-directory: src-tauri
+        env:
+          ZT_COMMIT: ${{ github.sha }}
+          ZT_TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+        run: npx tauri build --bundles nsis
+
+      - name: Verify offline cleanup
+        run: powershell -ExecutionPolicy Bypass -File scripts/verify-offline.ps1
+
+      - name: Collect artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: zerotrace-release
+          path: |
+            src-tauri/target/release/zerotrace.exe
+            src-tauri/target/release/zerotrace-elevated.exe
+            src-tauri/target/release/bundle/nsis/*-setup.exe
+          if-no-files-found: error
+
+      - name: Create GitHub Release
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: |
+            src-tauri/target/release/bundle/nsis/*-setup.exe
