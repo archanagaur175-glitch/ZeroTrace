@@ -11,7 +11,9 @@ no accounts, no cloud, no telemetry.
   There is no server component and no outbound network path in the app code.
 - **Low-privilege by default.** Destructive/system-level changes are delegated
   to a tiny, scoped elevated helper (`zerotrace-elevated.exe`) that performs
-  exactly one request over a per-run named pipe and exits.
+  exactly one request over a per-run named pipe and exits. A fresh copy is
+  built by CI into `src-tauri/bin/` before each release; the committed copy is
+  the bootstrap needed because the helper binary also ships bundled.
 - **Auditable.** A JSONL journal records every registry/task/firewall change
   with its exact undo command. A restore point is offered before structural
   changes such as service deletion.

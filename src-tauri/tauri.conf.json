@@ -36,7 +36,7 @@
       "icons/icon.ico"
     ],
     "resources": {
-      "target/release/zerotrace-elevated.exe": "bin/zerotrace-elevated.exe"
+      "bin/zerotrace-elevated.exe": "bin/zerotrace-elevated.exe"
     },
     "windows": {
       "webviewInstallMode": {
