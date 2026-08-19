@@ -5,11 +5,13 @@ import type { NetSnapshot } from "../api/types";
 interface RadarState {
   snapshot: NetSnapshot | null;
   history: RingBuffer;
+  historySnap: ChartPoint[];
 }
 
 const store = createStore<RadarState>({
   snapshot: null,
   history: new RingBuffer(150),
+  historySnap: [],
 });
 
 export function ingestSnapshot(snap: NetSnapshot): void {
@@ -20,7 +22,7 @@ export function ingestSnapshot(snap: NetSnapshot): void {
       up: snap.total_out,
       down: snap.total_in,
     } satisfies ChartPoint);
-    return { snapshot: snap, history };
+    return { snapshot: snap, history, historySnap: history.snapshot() };
   });
 }
 
@@ -29,5 +31,5 @@ export function useSnapshot(): NetSnapshot | null {
 }
 
 export function useHistory(): ChartPoint[] {
-  return useStore(store, (s) => s.history.snapshot());
+  return useStore(store, (s) => s.historySnap);
 }
