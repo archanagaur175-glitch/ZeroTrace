@@ -1,6 +1,6 @@
 [package]
 name = "zerotrace"
-version = "0.1.0"
+version = "0.1.1"
 description = "ZeroTrace — 100% local, zero-telemetry network & privacy monitor for Windows."
 authors = ["ZeroTrace contributors"]
 license = "GPL-3.0-or-later"

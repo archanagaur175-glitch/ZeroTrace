@@ -1,6 +1,6 @@
 [package]
 name = "zerotrace-elevated"
-version = "0.1.0"
+version = "0.1.1"
 description = "ZeroTrace elevated helper — performs one scoped privileged action per invocation, then exits."
 license = "GPL-3.0-or-later"
 edition = "2021"
